@@ -21,7 +21,7 @@ load_dotenv()
 # Initialize Spotify API client
 sp_oauth = SpotifyOAuth(client_id=os.getenv("SPOTIPY_CLIENT_ID"),
                          client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
-                         redirect_uri="http://localhost:8501/redirect",
+                         redirect_uri=os.getenv("URL")+"redirect",
                          scope="user-read-email, user-read-private")
 
 # Function to save token_info to a file
