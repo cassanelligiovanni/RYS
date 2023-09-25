@@ -17,12 +17,26 @@ import time
 
 load_dotenv()
 
+client_id = st.secrets["SPOTIPY_CLIENT_ID"]
+client_secret = st.secrets["SPOTIPY_CLIENT_SECRET"]
+redirect_uri = st.secrets["URL"]
 
 # Initialize Spotify API client
-sp_oauth = SpotifyOAuth(client_id=os.getenv("SPOTIPY_CLIENT_ID"),
-                         client_secret=os.getenv("SPOTIPY_CLIENT_SECRET"),
-                         redirect_uri=os.getenv("URL")+"redirect",
+sp_oauth = SpotifyOAuth(client_id=client_id,
+                         client_secret=client_secret,
+                         redirect_uri=redirect_uri,
                          scope="user-read-email, user-read-private")
+
+url_params = st.experimental_get_query_params()
+
+def get_token(oauth, code):
+
+    token = oauth.get_access_token(code, as_dict=True, check_cache=False)
+    # remove cached token saved in directory
+    # os.remove(".cache")
+    
+    # return the token
+    return token
 
 # Function to save token_info to a file
 def save_token_to_file(token_info):
@@ -52,20 +66,21 @@ def scroll_to_bottom(driver):
 # Load token from file
 token_info = load_token_from_file()
 
-
 # Check if loaded token is expired or not present
 if token_info and not is_token_expired(token_info):
+
     sp = Spotify(auth=token_info['access_token'])
 else:
     # Show authorization URL
     auth_url = sp_oauth.get_authorize_url()
     st.write(f"Please login [here]({auth_url}).")
-    url = st.text_input("Enter the URL you were redirected to: ")
+    # url = st.text_input("Enter the URL you were redirected to: ")
+    if 'code' in url_params.keys():
 
-    if url:
+        code = url_params['code']
+
         try:
-            code = sp_oauth.parse_response_code(url)
-            token_info = sp_oauth.get_access_token(code)
+            token_info = get_token(sp_oauth, code)
             sp = Spotify(auth=token_info['access_token'])
             save_token_to_file(token_info)
         except Exception as e:

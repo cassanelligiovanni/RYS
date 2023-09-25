@@ -4,3 +4,5 @@ venv/
 token_info.json
 only_me/
 .cache
+__pycache__
+.vscode
